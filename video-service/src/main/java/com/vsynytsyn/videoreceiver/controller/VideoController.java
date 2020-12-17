@@ -60,15 +60,14 @@ public class VideoController {
     }
 
 
-//    @GetMapping("/stream")
-//    public ResponseEntity<byte[]> streamVideo(
-//            ServerHttpResponse serverHttpResponse,
-//            @RequestHeader(value = "Range", required = false) String httpRangeList,
-//            @RequestParam String videoHash,
-//            @RequestParam String resolutionHeight
-//    ) {
-//        return videoStreamService.prepareContent(videoHash, resolutionHeight, httpRangeList);
-//    }
+    @GetMapping("/stream")
+    public ResponseEntity<byte[]> streamVideo(
+            @RequestHeader(value = "Range", required = false) String httpRangeList,
+            @RequestParam String videoHash,
+            @RequestParam String resolutionHeight
+    ) {
+        return videoStreamService.prepareContent(videoHash, resolutionHeight, httpRangeList);
+    }
 
 
     //    @GetMapping("/")
