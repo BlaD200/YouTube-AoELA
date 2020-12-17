@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 //@EnableConfigurationProperties
-public class VideoReceiver {
+public class VideoServiceApp {
 
     public static void main(String[] args) {
-        SpringApplication.run(VideoReceiver.class, args);
+        SpringApplication.run(VideoServiceApp.class, args);
     }
 }

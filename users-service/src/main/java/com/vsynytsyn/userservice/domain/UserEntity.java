@@ -1,11 +1,11 @@
 package com.vsynytsyn.userservice.domain;
 
-import com.sun.istack.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 
 @EqualsAndHashCode(of = {"userId"})
 @Data

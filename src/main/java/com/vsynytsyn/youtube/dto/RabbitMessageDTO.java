@@ -14,5 +14,5 @@ import java.io.Serializable;
 public class RabbitMessageDTO implements Serializable {
     private String pathToFile;
     private String username;
-    private String originalFilename;
+    private String hashValue;
 }

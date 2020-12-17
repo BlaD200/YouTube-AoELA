@@ -32,7 +32,7 @@ public class RabbitListeners {
             RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
-                    messageDTO.getOriginalFilename(),
+                    messageDTO.getHashValue(),
                     messageDTO.getUsername(),
                     VideoProcessingService.VideoResolutions.R720p
             );
@@ -49,7 +49,7 @@ public class RabbitListeners {
             RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
-                    messageDTO.getOriginalFilename(),
+                    messageDTO.getHashValue(),
                     messageDTO.getUsername(),
                     VideoProcessingService.VideoResolutions.R240p
             );
@@ -66,7 +66,7 @@ public class RabbitListeners {
             RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
-                    messageDTO.getOriginalFilename(),
+                    messageDTO.getHashValue(),
                     messageDTO.getUsername(),
                     VideoProcessingService.VideoResolutions.R360p
             );
@@ -83,7 +83,7 @@ public class RabbitListeners {
             RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
-                    messageDTO.getOriginalFilename(),
+                    messageDTO.getHashValue(),
                     messageDTO.getUsername(),
                     VideoProcessingService.VideoResolutions.R1080p
             );

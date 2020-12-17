@@ -10,11 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
 @Service
@@ -40,28 +41,47 @@ public class VideoProcessingService {
     }
 
 
-    public void processVideo(String pathToFile, String originalFilename, String username, VideoResolutions resolution) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg(ffmpegPath);
-        FFprobe ffprobe = new FFprobe(ffprobePath);
-
-        FFmpegProbeResult probeResult = ffprobe.probe(pathToFile);
-
-
-        long targetSize = probeResult.getFormat().size / 10;
-
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        String filename = String.format("(%s).%s.(%s).mp4", resolution, originalFilename, sdf.format(timestamp));
+    public void processVideo(
+            String pathToFile, String originalHashValue, String username, VideoResolutions resolution
+    ) throws IOException {
+        String filename =
+                String.format("(%s).%s.mp4", resolution, originalHashValue);
         Path outPath = Paths.get(BASE_STORE_PATH, username, "converted", filename);
 
         if (Files.notExists(outPath.getParent()))
             Files.createDirectories(outPath.getParent());
 
-        FFmpegBuilder builder = new FFmpegBuilder()
+        processVideo(pathToFile, outPath.toString(), resolution);
 
+        String newFileHash = sendProcessedFilename(originalHashValue, filename, resolution);
+        String newFilename = String.format("[%s]%s.mp4", resolution.height, newFileHash);
+        Path newPathToFile = Paths.get(BASE_STORE_PATH, username, "converted", newFilename);
+
+        try {
+            Files.move(outPath, newPathToFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        deleteService.recordVideoProcessed(pathToFile, originalHashValue);
+    }
+
+
+    private void processVideo(
+            String pathToFile, String outPath, VideoResolutions resolution
+    ) throws IOException {
+        FFmpeg ffmpeg = new FFmpeg(ffmpegPath);
+        FFprobe ffprobe = new FFprobe(ffprobePath);
+
+        FFmpegProbeResult probeResult = ffprobe.probe(pathToFile);
+
+        long targetSize = probeResult.getFormat().size / 10;
+
+        FFmpegBuilder builder = new FFmpegBuilder()
                 .setInput(probeResult)     // Filename, or a FFmpegProbeResult
                 .overrideOutputFiles(true) // Override the output if it exists
 
-                .addOutput(outPath.toString())   // Filename for the destination
+                .addOutput(outPath)   // Filename for the destination
                 .setFormat("mp4")        // Format is inferred from filename, or can be set
                 .setTargetSize(targetSize)  // Aim for a 20MB file
 
@@ -103,8 +123,52 @@ public class VideoProcessingService {
             }
         }*/);
         job.run();
+    }
 
-        deleteService.recordVideoProcessed(pathToFile);
+
+    private String sendProcessedFilename(
+            String originalHash, String newFilename, VideoResolutions resolution
+    ) throws IOException {
+        String params = String.format(
+                "originalVideoHash=%s&resolutionHeight=%s&newFilename=%s",
+                originalHash, resolution.height, newFilename
+        );
+        URL url = new URL(
+                String.format("http://localhost:9001/api/video/processed?%s", params)
+        );
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+        con.setConnectTimeout(3000);
+        con.setReadTimeout(3000);
+
+        String newHash = null;
+
+        int status = con.getResponseCode();
+        if (status > 299) {
+            String errorResponse = getResponse(con.getErrorStream());
+            System.err.println(errorResponse);
+
+        } else {
+            newHash = getResponse(con.getInputStream()).trim();
+        }
+        con.disconnect();
+
+        return newHash;
+    }
+
+
+    private String getResponse(InputStream inputStream) throws IOException {
+        Reader streamReader;
+        streamReader = new InputStreamReader(inputStream);
+        BufferedReader in = new BufferedReader(streamReader);
+        String inputLine;
+        StringBuilder jsonResponse = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            jsonResponse.append(inputLine);
+        }
+        in.close();
+
+        return jsonResponse.toString();
     }
 
 
