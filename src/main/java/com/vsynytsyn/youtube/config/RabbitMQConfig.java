@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = {"com.vsynytsyn.youtube.config"})
 public class RabbitMQConfig {
-    public static final String EXCHANGE_NAME = "VideoProcessingExchange";
-
+    public static final String PROCESSING_EXCHANGE_NAME = "VideoProcessingExchange";
+    public static final String DELETION_EXCHANGE_NAME = "VideoDeletionExchange";
 
     @Bean
     public Queue videoProcessingQueue360() {
@@ -36,9 +36,23 @@ public class RabbitMQConfig {
 
 
     @Bean
+    public Queue videoDeletionQueue(){
+        return QueueBuilder.durable(QueueNames.VideoDeletionQueue.queueName).build();
+    }
+
+
+    @Bean
     public Exchange videoProcessingExchange() {
         return ExchangeBuilder
-                .directExchange(EXCHANGE_NAME)
+                .directExchange(PROCESSING_EXCHANGE_NAME)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public Exchange videoDeletionExchange(){
+        return ExchangeBuilder
+                .directExchange(DELETION_EXCHANGE_NAME)
                 .durable(true)
                 .build();
     }
@@ -84,11 +98,23 @@ public class RabbitMQConfig {
     }
 
 
+    @Bean
+    public Binding videoDeletionBinding(){
+        return BindingBuilder
+                .bind(videoDeletionQueue())
+                .to(videoDeletionExchange())
+                .with(ROUTING_KEYS.DeleteVideo.routingKey)
+                .noargs();
+    }
+
+
     public enum ROUTING_KEYS {
         Video240("processVideo240"),
         Video360("processVideo360"),
         Video720("processVideo720"),
-        Video1080("processVideo1080");
+        Video1080("processVideo1080"),
+
+        DeleteVideo("deleteVideo");
 
         public final String routingKey;
 
@@ -103,7 +129,9 @@ public class RabbitMQConfig {
         Queue240("Video240ProcessingQueue"),
         Queue360("Video360ProcessingQueue"),
         Queue720("Video720ProcessingQueue"),
-        Queue1080("Video1080ProcessingQueue");
+        Queue1080("Video1080ProcessingQueue"),
+
+        VideoDeletionQueue("VideoDeletionQueue");
 
         public final String queueName;
 

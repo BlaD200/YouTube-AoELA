@@ -69,7 +69,7 @@ public class VideoStorageService {
 
         for (RabbitMQConfig.ROUTING_KEYS value : RabbitMQConfig.ROUTING_KEYS.values()) {
             rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConfig.PROCESSING_EXCHANGE_NAME,
                     value.routingKey,
                     arrayOutputStream.toByteArray()
             );

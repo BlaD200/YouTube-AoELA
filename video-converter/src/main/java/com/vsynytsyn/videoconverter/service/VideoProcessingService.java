@@ -23,6 +23,8 @@ public class VideoProcessingService {
     private final String BASE_STORE_PATH;
     private final SimpleDateFormat sdf;
 
+    private final SourceVideoDeleteService deleteService;
+
     @Value("${ffmpeg-path}")
     private String ffmpegPath;
     @Value("${ffprobe-path}")
@@ -31,17 +33,18 @@ public class VideoProcessingService {
 
     @Autowired
     public VideoProcessingService(@Value("${video-output-base-path}") String base_store_path,
-                                  SimpleDateFormat sdf) {
+                                  SimpleDateFormat sdf, SourceVideoDeleteService deleteService) {
         BASE_STORE_PATH = base_store_path;
         this.sdf = sdf;
+        this.deleteService = deleteService;
     }
 
 
-    public void processVideo(String filePath, String originalFilename, String username, VideoResolutions resolution) throws IOException {
+    public void processVideo(String pathToFile, String originalFilename, String username, VideoResolutions resolution) throws IOException {
         FFmpeg ffmpeg = new FFmpeg(ffmpegPath);
         FFprobe ffprobe = new FFprobe(ffprobePath);
 
-        FFmpegProbeResult probeResult = ffprobe.probe(filePath);
+        FFmpegProbeResult probeResult = ffprobe.probe(pathToFile);
 
 
         long targetSize = probeResult.getFormat().size / 10;
@@ -100,6 +103,8 @@ public class VideoProcessingService {
             }
         }*/);
         job.run();
+
+        deleteService.recordVideoProcessed(pathToFile);
     }
 
 
