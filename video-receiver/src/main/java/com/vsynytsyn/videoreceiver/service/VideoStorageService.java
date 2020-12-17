@@ -1,8 +1,15 @@
 package com.vsynytsyn.videoreceiver.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vsynytsyn.youtube.config.RabbitMQConfig;
+import com.vsynytsyn.youtube.dto.RabbitMessageDTO;
+import lombok.SneakyThrows;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +24,16 @@ public class VideoStorageService {
     public static final String BASE_STORE_PATH = "C:\\Users\\Vladyslav Synytsyn\\Videos\\YouTube";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS");
 
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
+
+
+    @Autowired
+    public VideoStorageService(RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper = objectMapper;
+    }
+
 
     public void store(MultipartFile videoFile, String fileName, String username) throws IOException {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -29,6 +46,24 @@ public class VideoStorageService {
             Files.createDirectories(filePath.getParent());
 
         Files.write(filePath, videoFile.getBytes());
+
+        sendMessages(storeFileName, username);
+    }
+
+
+    @SneakyThrows
+    private void sendMessages(String storeFilename, String username){
+        RabbitMessageDTO messageBody = RabbitMessageDTO.builder().storeFilename(storeFilename).username(username).build();
+        ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+        objectMapper.writeValue(arrayOutputStream, messageBody);
+
+        for (RabbitMQConfig.ROUTING_KEYS value : RabbitMQConfig.ROUTING_KEYS.values()) {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    value.routingKey,
+                    arrayOutputStream.toByteArray()
+            );
+        }
     }
 
 }
