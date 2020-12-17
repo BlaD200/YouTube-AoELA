@@ -90,7 +90,7 @@ public class VideoProcessingService {
                 .setAudioSampleRate(48_000)  // at 48KHz
                 .setAudioBitRate(32768)      // at 32 kbit/s
 
-                .setVideoCodec("libx265")     // Video using x265
+                .setVideoCodec("libx264")     // Video using x264
                 .setVideoFrameRate(30, 1)     // at 30 frames per second
                 .setVideoResolution(resolution.abbreviation) // at given resolution
 

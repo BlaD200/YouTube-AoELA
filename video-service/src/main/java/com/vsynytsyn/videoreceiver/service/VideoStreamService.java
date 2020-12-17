@@ -22,9 +22,6 @@ import java.util.Optional;
 // https://github.com/saravanastar/video-streaming
 public class VideoStreamService {
 
-    @Value("${storage-service.base-store-path}")
-    public String BASE_STORE_PATH;
-
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String VIDEO_CONTENT = "video/mp4";
     public static final String CONTENT_LENGTH = "Content-Length";
@@ -32,22 +29,23 @@ public class VideoStreamService {
     public static final String ACCEPT_RANGES = "Accept-Ranges";
     public static final String BYTES = "bytes";
     public static final int BYTE_RANGE = 1024;
-
     private final VideoRepository videoRepository;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Value("${storage-service.base-store-path}")
+    public String BASE_STORE_PATH;
 
 
     public VideoStreamService(VideoRepository videoRepository) {
         this.videoRepository = videoRepository;
     }
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      * Prepare the content.
      *
-     * @param videoHash String.
+     * @param videoHash        String.
      * @param resolutionHeight String.
-     * @param range    String.
+     * @param range            String.
      * @return ResponseEntity.
      */
     public ResponseEntity<byte[]> prepareContent(String videoHash, String resolutionHeight, String range) {
@@ -64,14 +62,15 @@ public class VideoStreamService {
 
         String fileName = String.format("[%s]%s.mp4", videoEntity.getResolutionHeight(), videoEntity.getHash());
         String authorUsername = videoEntity.getAuthorUsername();
+        String pathToFile = Paths.get(BASE_STORE_PATH, authorUsername, "converted", fileName).toString();
 
         try {
-            fileSize = getFileSize(fileName, authorUsername);
+            fileSize = getFileSize(pathToFile);
             if (range == null) {
                 return ResponseEntity.status(HttpStatus.OK)
                         .header(CONTENT_TYPE, VIDEO_CONTENT)
                         .header(CONTENT_LENGTH, String.valueOf(fileSize))
-                        .body(readByteRange(fileName, rangeStart, fileSize - 1, authorUsername)); // Read the object and convert
+                        .body(readByteRange(pathToFile, rangeStart, fileSize - 1)); // Read the object and convert
                 // it as bytes
             }
             String[] ranges = range.split("-");
@@ -84,7 +83,7 @@ public class VideoStreamService {
             if (fileSize < rangeEnd) {
                 rangeEnd = fileSize - 1;
             }
-            data = readByteRange(fileName, rangeStart, rangeEnd, authorUsername);
+            data = readByteRange(pathToFile, rangeStart, rangeEnd);
         } catch (IOException e) {
             logger.error("Exception while reading the file {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -100,18 +99,18 @@ public class VideoStreamService {
 
     }
 
+
     /**
      * ready file byte by byte.
      *
-     * @param filename String.
+     * @param pathToFile String.
      * @param start    long.
      * @param end      long.
-     * @param username
      * @return byte array.
      * @throws IOException exception.
      */
-    public byte[] readByteRange(String filename, long start, long end, String username) throws IOException {
-        Path path = Paths.get(BASE_STORE_PATH, username, "converted", filename);
+    public byte[] readByteRange(String pathToFile, long start, long end) throws IOException {
+        Path path = Paths.get(pathToFile);
         try (InputStream inputStream = (Files.newInputStream(path));
              ByteArrayOutputStream bufferedOutputStream = new ByteArrayOutputStream()) {
             byte[] data = new byte[BYTE_RANGE];
@@ -130,16 +129,16 @@ public class VideoStreamService {
     /**
      * Content length.
      *
-     * @param fileName String.
-     * @param username String.
-     * @return Long.
+     *
+     * @param pathToFile@return Long.
      */
-    public Long getFileSize(String fileName, String username) {
-        return Optional.ofNullable(fileName)
-                .map(file -> Paths.get(BASE_STORE_PATH, username, "converted", file))
+    public Long getFileSize(String pathToFile) {
+        return Optional.ofNullable(pathToFile)
+                .map(file -> Paths.get(pathToFile))
                 .map(this::sizeFromFile)
                 .orElse(0L);
     }
+
 
     /**
      * Getting the size from the path.
