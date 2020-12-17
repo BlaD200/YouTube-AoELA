@@ -6,6 +6,7 @@ import com.vsynytsyn.youtube.dto.RabbitMessageDTO;
 import lombok.SneakyThrows;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,17 +20,20 @@ import java.text.SimpleDateFormat;
 import java.util.Objects;
 
 @Service
+//@ConfigurationProperties(prefix = "storage-service")
 public class VideoStorageService {
 
-    public static final String BASE_STORE_PATH = "C:\\Users\\Vladyslav Synytsyn\\Videos\\YouTube";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS");
+    @Value("${storage-service.base-store-path}")
+    public String BASE_STORE_PATH;
 
+    private final SimpleDateFormat sdf;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
 
     @Autowired
-    public VideoStorageService(RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
+    public VideoStorageService(SimpleDateFormat sdf, RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
+        this.sdf = sdf;
         this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = objectMapper;
     }
@@ -47,13 +51,19 @@ public class VideoStorageService {
 
         Files.write(filePath, videoFile.getBytes());
 
-        sendMessages(storeFileName, username);
+        sendMessages(filePath.toString(), username, fileName);
     }
 
 
     @SneakyThrows
-    private void sendMessages(String storeFilename, String username){
-        RabbitMessageDTO messageBody = RabbitMessageDTO.builder().storeFilename(storeFilename).username(username).build();
+    private void sendMessages(String pathToFile, String username, String originalFilename) {
+        RabbitMessageDTO messageBody =
+                RabbitMessageDTO
+                        .builder()
+                        .originalFilename(originalFilename)
+                        .pathToFile(pathToFile)
+                        .username(username)
+                        .build();
         ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
         objectMapper.writeValue(arrayOutputStream, messageBody);
 

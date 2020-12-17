@@ -12,6 +12,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class RabbitMessageDTO implements Serializable {
-    private String storeFilename;
+    private String pathToFile;
     private String username;
+    private String originalFilename;
 }

@@ -1,82 +1,94 @@
 package com.vsynytsyn.videoconverter.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vsynytsyn.videoconverter.service.VideoProcessingService;
 import com.vsynytsyn.youtube.dto.RabbitMessageDTO;
-import lombok.SneakyThrows;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 @Component
 @EnableRabbit
 public class RabbitListeners {
     
     private final ObjectMapper objectMapper;
+    private final VideoProcessingService processingService;
 
 
     @Autowired
-    public RabbitListeners(ObjectMapper objectMapper) {
+    public RabbitListeners(ObjectMapper objectMapper, VideoProcessingService processingService) {
         this.objectMapper = objectMapper;
+        this.processingService = processingService;
     }
 
 
-    @SneakyThrows
     @RabbitListener(queues = "Video720ProcessingQueue")
     public void processVideo720(byte[] message){
-        RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
-
-        System.out.printf("[720] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+
+            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            processingService.processVideo(
+                    messageDTO.getPathToFile(),
+                    messageDTO.getOriginalFilename(),
+                    messageDTO.getUsername(),
+                    VideoProcessingService.VideoResolutions.R720p
+            );
+        } catch (IOException e){
             e.printStackTrace();
         }
-        System.out.printf("END [720] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
     }
 
 
-    @SneakyThrows
     @RabbitListener(queues = "Video240ProcessingQueue")
     public void processVideo240(byte[] message){
-        RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
-
-        System.out.printf("[240] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+
+            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            processingService.processVideo(
+                    messageDTO.getPathToFile(),
+                    messageDTO.getOriginalFilename(),
+                    messageDTO.getUsername(),
+                    VideoProcessingService.VideoResolutions.R240p
+            );
+        } catch (IOException e){
             e.printStackTrace();
         }
-        System.out.printf("END [240] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
     }
 
 
-    @SneakyThrows
     @RabbitListener(queues = "Video360ProcessingQueue")
     public void processVideo360(byte[] message){
-        RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
-
-        System.out.printf("[360] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+
+            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            processingService.processVideo(
+                    messageDTO.getPathToFile(),
+                    messageDTO.getOriginalFilename(),
+                    messageDTO.getUsername(),
+                    VideoProcessingService.VideoResolutions.R360p
+            );
+        } catch (IOException e){
             e.printStackTrace();
         }
-        System.out.printf("END [360] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
     }
 
 
-    @SneakyThrows
     @RabbitListener(queues = "Video1080ProcessingQueue")
     public void processVideo1080(byte[] message){
-        RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
-
-        System.out.printf("[1080] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+
+            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            processingService.processVideo(
+                    messageDTO.getPathToFile(),
+                    messageDTO.getOriginalFilename(),
+                    messageDTO.getUsername(),
+                    VideoProcessingService.VideoResolutions.R1080p
+            );
+        } catch (IOException e){
             e.printStackTrace();
         }
-        System.out.printf("END [1080] %s | %s\n", messageDTO.getUsername(), messageDTO.getStoreFilename());
     }
 }
