@@ -103,4 +103,8 @@ public class VideoStorageService {
         }
     }
 
+
+    public VideoEntity getOne(String videoHash, String resolution) {
+        return videoRepository.findByHashEqualsAndResolutionHeightEquals(videoHash, resolution).orElse(null);
+    }
 }

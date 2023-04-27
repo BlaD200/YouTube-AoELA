@@ -39,6 +39,14 @@ public class VideoController {
         return ResponseEntity.ok(storageService.getAll(pageable, videoName));
     }
 
+    @GetMapping
+    ResponseEntity<VideoEntity> getOne(
+            @RequestParam String videoHash,
+            @RequestParam String resolution
+    ) {
+        return ResponseEntity.ok(storageService.getOne(videoHash, resolution));
+    }
+
 
     @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
     ResponseEntity<Object> uploadVideo(
