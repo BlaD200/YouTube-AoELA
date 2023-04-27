@@ -30,6 +30,8 @@ public class VideoProcessingService {
     private String ffmpegPath;
     @Value("${ffprobe-path}")
     private String ffprobePath;
+    @Value("${video-receiver.url}")
+    private String videoReceiverUrl;
 
 
     @Autowired
@@ -134,7 +136,7 @@ public class VideoProcessingService {
                 originalHash, resolution.height, newFilename
         );
         URL url = new URL(
-                String.format("http://localhost:9001/api/video/processed?%s", params)
+                String.format("%s/api/video/processed?%s", videoReceiverUrl, params)
         );
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");

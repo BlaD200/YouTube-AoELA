@@ -2,6 +2,7 @@ package com.vsynytsyn.videoconverter.service;
 
 import com.vsynytsyn.youtube.config.RabbitMQConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,10 +16,13 @@ public class SourceVideoDeleteService {
     private final int processorsCount = VideoProcessingService.VideoResolutions.values().length;
     private final ConcurrentHashMap<String, Integer> videoProcessingCount;
     private final RabbitTemplate rabbitTemplate;
+    private final String videoReceiverUrl;
 
 
-    public SourceVideoDeleteService(RabbitTemplate rabbitTemplate) {
+    public SourceVideoDeleteService(RabbitTemplate rabbitTemplate,
+                                    @Value("${video-receiver.url}") String videoReceiverUrl) {
         this.rabbitTemplate = rabbitTemplate;
+        this.videoReceiverUrl = videoReceiverUrl;
         videoProcessingCount = new ConcurrentHashMap<>();
     }
 
@@ -52,7 +56,7 @@ public class SourceVideoDeleteService {
     private void sendDeleteOriginalFileRequest(String originalHash) throws IOException {
         String params = String.format("originalVideoHash=%s", originalHash);
         URL url = new URL(
-                String.format("http://localhost:9001/api/video/processed/deleteOriginal?%s", params)
+                String.format("%s/api/video/processed/deleteOriginal?%s", videoReceiverUrl, params)
         );
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");

@@ -39,10 +39,10 @@ public class VideoController {
         return ResponseEntity.ok(storageService.getAll(pageable, videoName));
     }
 
-    @GetMapping
+    @GetMapping("/{videoHash}/{resolution}")
     ResponseEntity<VideoEntity> getOne(
-            @RequestParam String videoHash,
-            @RequestParam String resolution
+            @PathVariable("videoHash") String videoHash,
+            @PathVariable("resolution") String resolution
     ) {
         return ResponseEntity.ok(storageService.getOne(videoHash, resolution));
     }

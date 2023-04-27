@@ -20,6 +20,7 @@ public class VideoHashService {
     }
 
 
+    @Transactional
     public String saveProcessedVideo(String originalVideoHash, String resolutionHeight)
             throws InvalidArgumentException {
         Optional<VideoEntity> originalVideoEntityOptional =

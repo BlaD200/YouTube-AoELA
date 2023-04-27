@@ -12,7 +12,7 @@
     </parent>
 
     <modules>
-        <module>video-receiver</module>
+        <module>video-service</module>
         <module>video-converter</module>
         <module>users-service</module>
     </modules>
