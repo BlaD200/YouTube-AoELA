@@ -1,0 +1,6 @@
+dependencies:
+- name: shared-pv
+  repository: file://../../../shared-pv
+  version: 0.1.0
+digest: sha256:0056e0b1c39e322beeb6d5a6db65edb9e2774fafb4c9ab2011e3401b07df890a
+generated: "2023-04-28T04:23:53.4933321+03:00"
