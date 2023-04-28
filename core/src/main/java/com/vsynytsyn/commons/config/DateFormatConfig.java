@@ -1,4 +1,4 @@
-package com.vsynytsyn.youtube.config;
+package com.vsynytsyn.commons.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

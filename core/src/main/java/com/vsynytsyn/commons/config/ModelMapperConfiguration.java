@@ -1,4 +1,4 @@
-package com.vsynytsyn.youtube.config;
+package com.vsynytsyn.commons.config;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;

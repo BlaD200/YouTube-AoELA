@@ -1,6 +1,5 @@
 package com.vsynytsyn.videoreceiver.service;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import com.vsynytsyn.videoreceiver.domain.VideoEntity;
 import com.vsynytsyn.videoreceiver.repository.VideoRepository;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -22,11 +21,11 @@ public class VideoHashService {
 
     @Transactional
     public String saveProcessedVideo(String originalVideoHash, String resolutionHeight)
-            throws InvalidArgumentException {
+            throws IllegalArgumentException {
         Optional<VideoEntity> originalVideoEntityOptional =
                 videoRepository.findByHashEqualsAndResolutionHeightEquals(originalVideoHash, "");
         if (!originalVideoEntityOptional.isPresent())
-            throw new InvalidArgumentException(new String[]{"originalVideoHash"});
+            throw new IllegalArgumentException("originalVideoHash");
         VideoEntity originalVideoEntity = originalVideoEntityOptional.get();
 
         String newHash = DigestUtils.md5Hex(originalVideoHash);

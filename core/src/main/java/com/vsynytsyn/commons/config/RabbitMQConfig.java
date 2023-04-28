@@ -1,4 +1,4 @@
-package com.vsynytsyn.youtube.config;
+package com.vsynytsyn.commons.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan(basePackages = {"com.vsynytsyn.youtube.config"})
+@ComponentScan(basePackages = {"com.vsynytsyn.commons.config"})
 public class RabbitMQConfig {
     public static final String PROCESSING_EXCHANGE_NAME = "VideoProcessingExchange";
     public static final String DELETION_EXCHANGE_NAME = "VideoDeletionExchange";

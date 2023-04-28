@@ -1,6 +1,5 @@
 package com.vsynytsyn.videoreceiver.controller;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import com.vsynytsyn.videoreceiver.service.VideoHashService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +27,7 @@ public class VideoProcessedHashController {
         try {
             String newHash = videoHashService.saveProcessedVideo(originalVideoHash, resolutionHeight);
             return ResponseEntity.ok(newHash);
-        } catch (InvalidArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
     }

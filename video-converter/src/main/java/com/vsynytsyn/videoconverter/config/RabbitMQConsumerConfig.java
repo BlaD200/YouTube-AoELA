@@ -1,7 +1,7 @@
 package com.vsynytsyn.videoconverter.config;
 
-import com.vsynytsyn.youtube.config.ModelMapperConfiguration;
-import com.vsynytsyn.youtube.config.RabbitMQConfig;
+import com.vsynytsyn.commons.config.ModelMapperConfiguration;
+import com.vsynytsyn.commons.config.RabbitMQConfig;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 

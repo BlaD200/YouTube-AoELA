@@ -1,8 +1,8 @@
 package com.vsynytsyn.videoconverter.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vsynytsyn.commons.dto.RabbitMessageDTO;
 import com.vsynytsyn.videoconverter.service.VideoProcessingService;
-import com.vsynytsyn.youtube.dto.RabbitMessageDTO;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;

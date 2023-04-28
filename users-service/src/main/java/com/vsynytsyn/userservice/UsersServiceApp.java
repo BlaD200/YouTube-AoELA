@@ -1,6 +1,6 @@
 package com.vsynytsyn.userservice;
 
-import com.vsynytsyn.youtube.config.ModelMapperConfiguration;
+import com.vsynytsyn.commons.config.ModelMapperConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;

@@ -1,10 +1,10 @@
 package com.vsynytsyn.userservice.controller;
 
 
+import com.vsynytsyn.commons.responce.ErrorResponse;
 import com.vsynytsyn.userservice.domain.UserEntity;
 import com.vsynytsyn.userservice.dto.UserDTO;
 import com.vsynytsyn.userservice.service.UserService;
-import com.vsynytsyn.youtube.responce.ErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

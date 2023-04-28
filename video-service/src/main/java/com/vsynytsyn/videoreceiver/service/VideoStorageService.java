@@ -1,10 +1,10 @@
 package com.vsynytsyn.videoreceiver.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vsynytsyn.commons.config.RabbitMQConfig;
+import com.vsynytsyn.commons.dto.RabbitMessageDTO;
 import com.vsynytsyn.videoreceiver.domain.VideoEntity;
 import com.vsynytsyn.videoreceiver.repository.VideoRepository;
-import com.vsynytsyn.youtube.config.RabbitMQConfig;
-import com.vsynytsyn.youtube.dto.RabbitMessageDTO;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

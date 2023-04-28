@@ -1,4 +1,4 @@
-package com.vsynytsyn.youtube.dto;
+package com.vsynytsyn.commons.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

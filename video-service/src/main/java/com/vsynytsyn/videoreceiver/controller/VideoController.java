@@ -1,9 +1,9 @@
 package com.vsynytsyn.videoreceiver.controller;
 
+import com.vsynytsyn.commons.responce.ErrorResponse;
 import com.vsynytsyn.videoreceiver.domain.VideoEntity;
 import com.vsynytsyn.videoreceiver.service.VideoStorageService;
 import com.vsynytsyn.videoreceiver.service.VideoStreamService;
-import com.vsynytsyn.youtube.responce.ErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
