@@ -1,0 +1,60 @@
+version: "3"
+
+services:
+  video-service:
+    image: video-service:1.0.0
+    build: ./video-service/
+    restart: on-failure
+    depends_on:
+      - postgres-master
+    volumes:
+      - app-video-storage:/app/videos
+    ports:
+      - "9001:9001"
+    environment:
+      baseStorePath: /app/videos
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      dbUsername: ${DB_USERNAME}
+      dbPassword: ${DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+
+  video-converter:
+    image: video-converter:1.0.0
+    build: ./video-converter/
+    depends_on:
+      - rabbitmq
+    volumes:
+      - app-video-storage:/app/videos
+    ports:
+      - "9101-9200:9002"
+    environment:
+      videoOutputBasePath: /app/videos
+      videoReceiverServiceUrl: http://video-service:9001/
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT:
+
+  postgres-master:
+    image: postgres:13.4
+    restart: always
+    volumes:
+      - database-storage:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      - 'POSTGRES_PASSWORD=${DB_PASSWORD}'
+      - 'POSTGRES_DB=${DB_NAME}'
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    restart: always
+    volumes:
+      - rabbitmq-storage:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+
+volumes:
+  database-storage:
+  rabbitmq-storage:
+  app-video-storage:

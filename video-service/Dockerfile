@@ -11,14 +11,15 @@ COPY target/video-service-0.0.1-SNAPSHOT.jar video-service.jar
 EXPOSE 9001
 
 # Set the environment variables
-ENV dbURL=db \
-    dbUsername=my_username \
-    dbPassword=my_password \
-    FFMPEG_PATH=/usr/bin/ffmpeg
+#ENV FFMPEG_PATH: /usr/bin/ffmpeg
+#ENV dbURL=db \
+#    dbUsername=my_username \
+#    dbPassword=my_password \
+#    FFMPEG_PATH=/usr/bin/ffmpeg
 
 # Install FFmpeg
-RUN apt-get update && \
-    apt-get install -y ffmpeg
+RUN #apt-get update && \
+#    apt-get install -y ffmpeg
 
 # Create a volume to store videos
 VOLUME /app/videos

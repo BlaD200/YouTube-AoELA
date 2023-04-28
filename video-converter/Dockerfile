@@ -7,14 +7,14 @@ WORKDIR /app
 # Copy the Spring Boot jar file into the container at /app/video-converter.jar
 COPY target/video-converter-0.0.1-SNAPSHOT.jar video-converter.jar
 
-# Expose port 9001
-EXPOSE 9001
+# Expose port 9002
+EXPOSE 9002
 
 # Set the environment variables
 ENV ffmpegPath=/usr/bin/ffmpeg \
-    ffprobePath=/usr/bin/ffprobe \
-    videoOutputBasePath=/app/videos \
-    videoReceiverServiceUrl=http://video-receiver:9001/
+    ffprobePath=/usr/bin/ffprobe
+#    videoOutputBasePath=/app/videos \
+#    videoReceiverServiceUrl=http://video-receiver:9001/
 
 # Install FFmpeg
 RUN apt-get update && \
