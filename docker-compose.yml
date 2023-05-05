@@ -5,12 +5,15 @@ services:
     image: video-service:1.0.0
     build: ./video-service/
     restart: on-failure
+    deploy:
+      mode: replicated
+      replicas: 2
     depends_on:
       - postgres-master
     volumes:
       - app-video-storage:/app/videos
     ports:
-      - "9001:9001"
+      - "9001"
     environment:
       baseStorePath: /app/videos
       DB_HOST: postgres-master
@@ -23,12 +26,15 @@ services:
   video-converter:
     image: video-converter:1.0.0
     build: ./video-converter/
+    deploy:
+      mode: replicated
+      replicas: 5
     depends_on:
       - rabbitmq
     volumes:
       - app-video-storage:/app/videos
     ports:
-      - "9101-9200:9002"
+      - "9002"
     environment:
       videoOutputBasePath: /app/videos
       videoReceiverServiceUrl: http://video-service:9001/
@@ -53,6 +59,15 @@ services:
       - rabbitmq-storage:/var/lib/rabbitmq
     ports:
       - "15672:15672"
+
+  nginx-video-service:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - video-service
+    ports:
+      - "9001:9001"
 
 volumes:
   database-storage:
