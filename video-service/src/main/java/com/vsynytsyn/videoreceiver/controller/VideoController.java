@@ -1,13 +1,15 @@
 package com.vsynytsyn.videoreceiver.controller;
 
 import com.vsynytsyn.commons.responce.ErrorResponse;
-import com.vsynytsyn.videoreceiver.domain.VideoEntity;
+import com.vsynytsyn.videoreceiver.domain.VideoMetadataEntity;
 import com.vsynytsyn.videoreceiver.service.VideoStorageService;
 import com.vsynytsyn.videoreceiver.service.VideoStreamService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/video")
 public class VideoController {
@@ -33,18 +36,40 @@ public class VideoController {
 
 
     @GetMapping
-    ResponseEntity<Page<VideoEntity>> getAll(
-            Pageable pageable, @RequestParam(required = false) String videoName
+    ResponseEntity<Page<VideoMetadataEntity>> getAll(
+            Pageable pageable,
+            @RequestParam(required = false) String videoName
     ) {
         return ResponseEntity.ok(storageService.getAll(pageable, videoName));
     }
 
     @GetMapping("/{videoHash}/{resolution}")
-    ResponseEntity<VideoEntity> getOne(
+    ResponseEntity<VideoMetadataEntity> getOne(
             @PathVariable("videoHash") String videoHash,
             @PathVariable("resolution") String resolution
     ) {
         return ResponseEntity.ok(storageService.getOne(videoHash, resolution));
+    }
+
+    @GetMapping(value = "thumbnail/{videoHash}", produces = MediaType.IMAGE_PNG_VALUE)
+    @ResponseBody ResponseEntity<byte[]> getVideoThumbnail(
+            @PathVariable("videoHash") String videoHash
+    ) {
+        try {
+            return ResponseEntity.ok(storageService.getVideoThumbnail(videoHash));
+        } catch (IOException e) {
+            log.error("Exception while reading the file {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+    }
+
+
+    @GetMapping("resolutions/{videoHash}")
+    ResponseEntity<List<String>> getVideoResolutions(
+            @PathVariable("videoHash") String videoHash
+    ) {
+        return ResponseEntity.ok(storageService.getVideoResolutions(videoHash));
     }
 
 

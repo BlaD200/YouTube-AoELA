@@ -32,13 +32,23 @@ public class VideoProcessedHashController {
         }
     }
 
-
-    @GetMapping("/deleteOriginal")
-    public void createNewHashForProcessedVideo(
+    @GetMapping("/thumbnail")
+    public ResponseEntity<Object> createNewHashForProcessedThumbnail(
             @RequestParam String originalVideoHash
     ){
-        videoHashService.deleteOriginalVideoFromDB(originalVideoHash);
+        try {
+            String newHash = videoHashService.saveProcessedThumbnail(originalVideoHash);
+            return ResponseEntity.ok(newHash);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 
+//    @GetMapping("/deleteOriginal")
+//    public void createNewHashForProcessedVideo(
+//            @RequestParam String originalVideoHash
+//    ){
+//        videoHashService.deleteOriginalVideoFromDB(originalVideoHash);
+//    }
 }

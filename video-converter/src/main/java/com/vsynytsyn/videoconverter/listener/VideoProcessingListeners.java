@@ -1,7 +1,7 @@
 package com.vsynytsyn.videoconverter.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vsynytsyn.commons.dto.RabbitMessageDTO;
+import com.vsynytsyn.commons.dto.VideoToProcessDTO;
 import com.vsynytsyn.videoconverter.service.VideoProcessingService;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -12,14 +12,14 @@ import java.io.IOException;
 
 @Component
 @EnableRabbit
-public class RabbitListeners {
+public class VideoProcessingListeners {
     
     private final ObjectMapper objectMapper;
     private final VideoProcessingService processingService;
 
 
     @Autowired
-    public RabbitListeners(ObjectMapper objectMapper, VideoProcessingService processingService) {
+    public VideoProcessingListeners(ObjectMapper objectMapper, VideoProcessingService processingService) {
         this.objectMapper = objectMapper;
         this.processingService = processingService;
     }
@@ -28,8 +28,7 @@ public class RabbitListeners {
     @RabbitListener(queues = "Video720ProcessingQueue")
     public void processVideo720(byte[] message){
         try {
-
-            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            VideoToProcessDTO messageDTO = objectMapper.readValue(message, VideoToProcessDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
                     messageDTO.getHashValue(),
@@ -45,8 +44,7 @@ public class RabbitListeners {
     @RabbitListener(queues = "Video240ProcessingQueue")
     public void processVideo240(byte[] message){
         try {
-
-            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            VideoToProcessDTO messageDTO = objectMapper.readValue(message, VideoToProcessDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
                     messageDTO.getHashValue(),
@@ -62,8 +60,7 @@ public class RabbitListeners {
     @RabbitListener(queues = "Video360ProcessingQueue")
     public void processVideo360(byte[] message){
         try {
-
-            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            VideoToProcessDTO messageDTO = objectMapper.readValue(message, VideoToProcessDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
                     messageDTO.getHashValue(),
@@ -79,13 +76,26 @@ public class RabbitListeners {
     @RabbitListener(queues = "Video1080ProcessingQueue")
     public void processVideo1080(byte[] message){
         try {
-
-            RabbitMessageDTO messageDTO = objectMapper.readValue(message, RabbitMessageDTO.class);
+            VideoToProcessDTO messageDTO = objectMapper.readValue(message, VideoToProcessDTO.class);
             processingService.processVideo(
                     messageDTO.getPathToFile(),
                     messageDTO.getHashValue(),
                     messageDTO.getUsername(),
                     VideoProcessingService.VideoResolutions.R1080p
+            );
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "VideoThumbnailProcessingQueue")
+    public void processVideoThumbnail(byte[] message){
+        try {
+            VideoToProcessDTO messageDTO = objectMapper.readValue(message, VideoToProcessDTO.class);
+            processingService.processVideoThumbnail(
+                    messageDTO.getPathToFile(),
+                    messageDTO.getHashValue(),
+                    messageDTO.getUsername()
             );
         } catch (IOException e){
             e.printStackTrace();

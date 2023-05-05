@@ -1,8 +1,12 @@
 package com.vsynytsyn.videoreceiver.service;
 
-import com.vsynytsyn.videoreceiver.domain.VideoEntity;
-import com.vsynytsyn.videoreceiver.repository.VideoRepository;
-import org.apache.commons.codec.digest.DigestUtils;
+import com.vsynytsyn.videoreceiver.domain.VideoMetadataEntity;
+import com.vsynytsyn.videoreceiver.domain.VideoResolutionEntity;
+import com.vsynytsyn.videoreceiver.domain.VideoResolutionId;
+import com.vsynytsyn.videoreceiver.domain.VideoThumbnailEntity;
+import com.vsynytsyn.videoreceiver.repository.VideoMetadataRepository;
+import com.vsynytsyn.videoreceiver.repository.VideoResolutionRepository;
+import com.vsynytsyn.videoreceiver.repository.VideoThumbnailRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,42 +15,66 @@ import java.util.Optional;
 @Service
 public class VideoHashService {
 
-    private final VideoRepository videoRepository;
+    private final VideoMetadataRepository videoMetadataRepository;
+    private final VideoResolutionRepository videoResolutionRepository;
+    private final VideoThumbnailRepository videoThumbnailRepository;
 
 
-    public VideoHashService(VideoRepository videoRepository) {
-        this.videoRepository = videoRepository;
+    public VideoHashService(VideoMetadataRepository videoMetadataRepository,
+                            VideoResolutionRepository videoResolutionRepository,
+                            VideoThumbnailRepository videoThumbnailRepository) {
+        this.videoMetadataRepository = videoMetadataRepository;
+        this.videoResolutionRepository = videoResolutionRepository;
+        this.videoThumbnailRepository = videoThumbnailRepository;
     }
 
 
     @Transactional
     public String saveProcessedVideo(String originalVideoHash, String resolutionHeight)
             throws IllegalArgumentException {
-        Optional<VideoEntity> originalVideoEntityOptional =
-                videoRepository.findByHashEqualsAndResolutionHeightEquals(originalVideoHash, "");
-        if (!originalVideoEntityOptional.isPresent())
+        Optional<VideoMetadataEntity> originalVideoMetadataOptional =
+                videoMetadataRepository.findByHashEquals(originalVideoHash);
+        if (!originalVideoMetadataOptional.isPresent())
             throw new IllegalArgumentException("originalVideoHash");
-        VideoEntity originalVideoEntity = originalVideoEntityOptional.get();
 
-        String newHash = DigestUtils.md5Hex(originalVideoHash);
-        VideoEntity processedVideo = VideoEntity
+//        String newHash = DigestUtils.md5Hex(originalVideoHash);
+        VideoResolutionId videoResolutionId = new VideoResolutionId();
+        videoResolutionId.setHash(originalVideoHash);
+        videoResolutionId.setResolutionHeight(resolutionHeight);
+        VideoResolutionEntity processedVideo = VideoResolutionEntity
                 .builder()
-                .name(originalVideoEntity.getName())
-                .description(originalVideoEntity.getDescription())
-                .authorUsername(originalVideoEntity.getAuthorUsername())
-                .hash(newHash)
-                .resolutionHeight(resolutionHeight)
+                .id(videoResolutionId)
+                .metadata(originalVideoMetadataOptional.get())
                 .build();
 
-        videoRepository.save(processedVideo);
+        videoResolutionRepository.save(processedVideo);
 
-        return newHash;
+        return originalVideoHash;
     }
 
     @Transactional
-    public void deleteOriginalVideoFromDB(String originalVideoHash){
-        videoRepository.deleteByHashEqualsAndResolutionHeightEquals(originalVideoHash, "");
+    public String saveProcessedThumbnail(String originalVideoHash)
+            throws IllegalArgumentException {
+        Optional<VideoMetadataEntity> originalVideoMetadataOptional =
+                videoMetadataRepository.findByHashEquals(originalVideoHash);
+        if (!originalVideoMetadataOptional.isPresent())
+            throw new IllegalArgumentException("originalVideoHash");
+
+        VideoThumbnailEntity processedThumbnail = VideoThumbnailEntity
+                .builder()
+                .hash(originalVideoHash)
+                .videoMetadata(originalVideoMetadataOptional.get())
+                .build();
+
+        videoThumbnailRepository.save(processedThumbnail);
+
+        return originalVideoHash;
     }
+
+//    @Transactional
+//    public void deleteOriginalVideoFromDB(String originalVideoHash){
+//        videoMetadataRepository.deleteByHashEquals(originalVideoHash);
+//    }
 }
 
 

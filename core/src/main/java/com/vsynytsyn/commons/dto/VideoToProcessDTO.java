@@ -11,7 +11,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RabbitMessageDTO implements Serializable {
+public class VideoToProcessDTO implements Serializable {
     private String pathToFile;
     private String username;
     private String hashValue;

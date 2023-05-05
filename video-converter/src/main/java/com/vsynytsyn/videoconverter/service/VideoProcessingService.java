@@ -20,11 +20,12 @@ import java.text.SimpleDateFormat;
 
 @Service
 public class VideoProcessingService {
-
     private final String BASE_STORE_PATH;
     private final SimpleDateFormat sdf;
 
     private final SourceVideoDeleteService deleteService;
+    private final FFmpeg ffmpeg;
+    private final FFprobe ffprobe;
 
     @Value("${ffmpeg-path}")
     private String ffmpegPath;
@@ -35,11 +36,15 @@ public class VideoProcessingService {
 
 
     @Autowired
-    public VideoProcessingService(@Value("${video-output-base-path}") String base_store_path,
-                                  SimpleDateFormat sdf, SourceVideoDeleteService deleteService) {
-        BASE_STORE_PATH = base_store_path;
+    public VideoProcessingService(
+            @Value("${video-output-base-path}") String baseStorePath,
+            @Value("${ffmpeg-path}") String ffmpegPath, @Value("${ffprobe-path}") String ffprobePath,
+            SimpleDateFormat sdf, SourceVideoDeleteService deleteService) throws IOException {
+        BASE_STORE_PATH = baseStorePath;
         this.sdf = sdf;
         this.deleteService = deleteService;
+        ffmpeg = new FFmpeg(ffmpegPath);
+        ffprobe = new FFprobe(ffprobePath);
     }
 
 
@@ -47,7 +52,7 @@ public class VideoProcessingService {
             String pathToFile, String originalHashValue, String username, VideoResolutions resolution
     ) throws IOException {
         String filename =
-                String.format("(%s).%s.mp4", resolution, originalHashValue);
+                String.format("[%s]%s.mp4", resolution.height, originalHashValue);
         Path outPath = Paths.get(BASE_STORE_PATH, username, "converted", filename);
 
         if (Files.notExists(outPath.getParent()))
@@ -55,15 +60,40 @@ public class VideoProcessingService {
 
         processVideo(pathToFile, outPath.toString(), resolution);
 
-        String newFileHash = sendProcessedFilename(originalHashValue, filename, resolution);
-        String newFilename = String.format("[%s]%s.mp4", resolution.height, newFileHash);
-        Path newPathToFile = Paths.get(BASE_STORE_PATH, username, "converted", newFilename);
+        sendProcessedFilename(originalHashValue, resolution);
+//        String newFilename = String.format("[%s]%s.mp4", resolution.height, newFileHash);
+//        Path newPathToFile = Paths.get(BASE_STORE_PATH, username, "converted", newFilename);
+//
+//        try {
+//            Files.move(outPath, newPathToFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
-        try {
-            Files.move(outPath, newPathToFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        deleteService.recordVideoProcessed(pathToFile, originalHashValue);
+    }
+
+
+    public void processVideoThumbnail(
+            String pathToFile, String originalHashValue, String username
+    ) throws IOException {
+        String filename = String.format("%s.png", originalHashValue);
+        Path outPath = Paths.get(BASE_STORE_PATH, username, "thumbnails", filename);
+
+        if (Files.notExists(outPath.getParent()))
+            Files.createDirectories(outPath.getParent());
+
+        processVideoThumbnail(pathToFile, outPath.toString());
+
+        sendProcessedThumbnail(originalHashValue);
+//        String newFilename = String.format("%s.png", newFileHash);
+//        Path newPathToFile = Paths.get(BASE_STORE_PATH, username, "thumbnails", newFilename);
+//
+//        try {
+//            Files.move(outPath, newPathToFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         deleteService.recordVideoProcessed(pathToFile, originalHashValue);
     }
@@ -72,9 +102,6 @@ public class VideoProcessingService {
     private void processVideo(
             String pathToFile, String outPath, VideoResolutions resolution
     ) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg(ffmpegPath);
-        FFprobe ffprobe = new FFprobe(ffprobePath);
-
         FFmpegProbeResult probeResult = ffprobe.probe(pathToFile);
 
         long targetSize = probeResult.getFormat().size / 10;
@@ -127,17 +154,45 @@ public class VideoProcessingService {
         job.run();
     }
 
+    private void processVideoThumbnail(String pathToFile, String outPath) throws IOException {
+        FFmpegBuilder builder = new FFmpegBuilder()
+                .setInput(pathToFile)
+                .addOutput(outPath)
+                .setFrames(1)
+                .setVideoFilter("select='gte(n\\,10)'")
+                .done();
+
+        FFmpegExecutor executor = new FFmpegExecutor(ffmpeg);
+
+        // Run a one-pass encode
+        FFmpegJob job = executor.createJob(builder);
+        job.run();
+    }
+
 
     private String sendProcessedFilename(
-            String originalHash, String newFilename, VideoResolutions resolution
+            String originalHash, VideoResolutions resolution
     ) throws IOException {
         String params = String.format(
-                "originalVideoHash=%s&resolutionHeight=%s&newFilename=%s",
-                originalHash, resolution.height, newFilename
+                "originalVideoHash=%s&resolutionHeight=%s",
+                originalHash, resolution.height
         );
         URL url = new URL(
                 String.format("%s/api/video/processed?%s", videoReceiverUrl, params)
         );
+        return getHashFromRequest(url);
+    }
+
+
+    private String sendProcessedThumbnail(String originalHash) throws IOException {
+        String params = String.format("originalVideoHash=%s", originalHash);
+        URL url = new URL(
+                String.format("%s/api/video/processed/thumbnail?%s", videoReceiverUrl, params)
+        );
+        return getHashFromRequest(url);
+    }
+
+    private String getHashFromRequest(URL url) throws IOException {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         con.setConnectTimeout(3000);
@@ -147,19 +202,18 @@ public class VideoProcessingService {
 
         int status = con.getResponseCode();
         if (status > 299) {
-            String errorResponse = getResponse(con.getErrorStream());
+            String errorResponse = readResponse(con.getErrorStream());
             System.err.println(errorResponse);
 
         } else {
-            newHash = getResponse(con.getInputStream()).trim();
+            newHash = readResponse(con.getInputStream()).trim();
         }
         con.disconnect();
-
         return newHash;
     }
 
 
-    private String getResponse(InputStream inputStream) throws IOException {
+    private String readResponse(InputStream inputStream) throws IOException {
         Reader streamReader;
         streamReader = new InputStreamReader(inputStream);
         BufferedReader in = new BufferedReader(streamReader);
@@ -178,7 +232,9 @@ public class VideoProcessingService {
         R1080p(1920, 1080),
         R720p(1280, 720),
         R360p(640, 360),
-        R240p(426, 240);
+        R240p(426, 240),
+
+        Thumbnail(1920, 1080);
 
         public final String abbreviation;
         private final int height;

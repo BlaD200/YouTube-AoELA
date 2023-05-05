@@ -5,9 +5,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -43,28 +40,28 @@ public class SourceVideoDeleteService {
                 RabbitMQConfig.ROUTING_KEYS.DeleteVideo.routingKey,
                 pathToVideo
         );
-
-        try {
-            sendDeleteOriginalFileRequest(originalHash);
-            System.out.println("Sent delete request for video hash " + originalHash);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//
+//        try {
+//            sendDeleteOriginalFileRequest(originalHash);
+//            System.out.println("Sent delete request for video hash " + originalHash);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
 
-    private void sendDeleteOriginalFileRequest(String originalHash) throws IOException {
-        String params = String.format("originalVideoHash=%s", originalHash);
-        URL url = new URL(
-                String.format("%s/api/video/processed/deleteOriginal?%s", videoReceiverUrl, params)
-        );
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setConnectTimeout(3000);
-        con.setReadTimeout(3000);
-
-        con.getResponseCode();
-
-        con.disconnect();
-    }
+//    private void sendDeleteOriginalFileRequest(String originalHash) throws IOException {
+//        String params = String.format("originalVideoHash=%s", originalHash);
+//        URL url = new URL(
+//                String.format("%s/api/video/processed/deleteOriginal?%s", videoReceiverUrl, params)
+//        );
+//        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+//        con.setRequestMethod("GET");
+//        con.setConnectTimeout(3000);
+//        con.setReadTimeout(3000);
+//
+//        con.getResponseCode();
+//
+//        con.disconnect();
+//    }
 }

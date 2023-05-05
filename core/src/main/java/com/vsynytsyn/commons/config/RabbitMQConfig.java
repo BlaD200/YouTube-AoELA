@@ -34,6 +34,11 @@ public class RabbitMQConfig {
         return QueueBuilder.durable(QueueNames.Queue1080.queueName).build();
     }
 
+    @Bean
+    public Queue videoThumbnailProcessingQueue() {
+        return QueueBuilder.durable(QueueNames.QueueThumbnail.queueName).build();
+    }
+
 
     @Bean
     public Queue videoDeletionQueue(){
@@ -97,6 +102,15 @@ public class RabbitMQConfig {
                 .noargs();
     }
 
+    @Bean
+    public Binding videoThumbnailProcessingBinding() {
+        return BindingBuilder
+                .bind(videoThumbnailProcessingQueue())
+                .to(videoProcessingExchange())
+                .with(ROUTING_KEYS.VideoThumbnail.routingKey)
+                .noargs();
+    }
+
 
     @Bean
     public Binding videoDeletionBinding(){
@@ -114,6 +128,8 @@ public class RabbitMQConfig {
         Video720("processVideo720"),
         Video1080("processVideo1080"),
 
+        VideoThumbnail("processVideoThumbnail"),
+
         DeleteVideo("deleteVideo");
 
         public final String routingKey;
@@ -130,6 +146,8 @@ public class RabbitMQConfig {
         Queue360("Video360ProcessingQueue"),
         Queue720("Video720ProcessingQueue"),
         Queue1080("Video1080ProcessingQueue"),
+
+        QueueThumbnail("VideoThumbnailProcessingQueue"),
 
         VideoDeletionQueue("VideoDeletionQueue");
 
